@@ -4,7 +4,7 @@ module GeekHelper
     Time.parse item[:start]
   end
 
-  def events
+  def archives    
     @items.select do |event|
       !!event[:edition]
     end.sort_by do |event|
@@ -12,8 +12,20 @@ module GeekHelper
     end
   end
 
+  def groupYearMonths
+    return @items.select {|event| !event[:start].nil?}.sort_by { |i| i[:edition]}.reverse.group_by {|i| [i[:start].to_date.year, i[:start].to_date.strftime("%b %d")]}
+  end
+
+  def getEvents
+    events=[]
+    groupYearMonths.each do |event|
+      events.push({event[0].first=>event[0].last})
+    end
+    return Hash[events.group_by {|i| i.keys}.map{|k,v| [k, v.map{ |k1|  k1.map{|k2,v2| v2 }}.flatten] }]
+  end
+
   def latest
-    @@first ||= events.first
+    @@first ||= archives.first
   end
 
   def json_of_event(item)
